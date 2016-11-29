@@ -1,0 +1,8 @@
+*~
+/site/
+/static/js/vendor/
+/protected-service
+/.auth/
+/package
+/server.spec
+/static

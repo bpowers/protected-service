@@ -1,0 +1,59 @@
+#!/bin/bash
+set -u
+#set -e
+
+BASE="$(cd "$(dirname "${BASH_SOURCE[0]}" )" && pwd)"
+CONFIG="$BASE/config"
+
+# strip whitespace
+read  -rd '' base <<< `grep AuthDir $CONFIG | cut -d '=' -f 2 | cut -d '"' -f 2`
+
+if [ $# != '1' ]; then
+    echo "usage: $(basename $0) username"
+    exit 1
+fi
+
+# strip leading and trailing whitespace from username
+read  -rd '' username <<< "$1"
+shift
+if [ x"$username" = x ]; then
+    echo "can't have blank username"
+    exit 1
+fi
+
+stty_args=`stty -g`
+stty -echo
+/bin/echo -n 'password: '
+read password1
+echo ''
+/bin/echo -n 'password again: '
+read password2
+echo ''
+stty $stty_args
+
+if [ x"$password1" != x"$password2" ]; then
+    echo "passwords don't match"
+    exit 1
+fi
+
+if [ x"$password1" = x ]; then
+    echo "can't have blank password"
+    exit 1
+fi
+
+if [ ! -e "$base" ]; then
+    mkdir -p "$base"
+fi
+
+userdir="$base/$username"
+
+if [ -e $userdir ]; then
+    echo "user already exists, changing password"
+    #exit 1
+fi
+
+mkdir -p "$userdir"
+
+# and add the password file
+hashed=`/bin/echo -n "$username|$password1" | shasum -a256 | cut -d ' ' -f 1`
+/bin/echo -n $hashed >"$userdir/.password"

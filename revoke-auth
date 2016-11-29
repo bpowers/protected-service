@@ -1,0 +1,14 @@
+#!/bin/bash
+
+BASE="$(cd "$(dirname "${BASH_SOURCE[0]}" )" && pwd)"
+CONFIG="$BASE/config"
+
+tok="$(cat /dev/urandom | head -c 1024 | sha512sum | cut -d ' ' -f 1)"
+
+cat >$CONFIG <<EOF
+CookieName = "w"
+SessionKey = "$tok"
+AuthDir    = ".auth"
+EOF
+
+sudo service survey-auth restart
